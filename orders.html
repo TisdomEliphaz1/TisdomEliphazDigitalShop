@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders – TisdomEliphazDigitalShop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo brand">TisdomEliphazDigitalShop</a>
+      <form class="search-bar">
+        <input type="text" placeholder="Search products...">
+        <button type="submit">🔍</button>
+      </form>
+      <ul class="nav-links">
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="dashboard.html">📊 Dashboard</a></li>
+        <li id="adminLink" style="display:none;"><a id="menu-admin" href="admin-dashboard.html">Admin Dashboard</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+        <li><a href="faqs.html">❓ FAQs</a></li>
+        <li id="logoutLink" style="display:none;"><a href="#" onclick="logout()">🚪 Logout</a></li>
+      </ul>
+      <button class="mobile-menu" id="mobileMenu">☰</button>
+    </div>
+  </header>
+
+  <section class="section container">
+    <h2>📦 Orders</h2>
+    <div id="orders-list"></div>
+  </section>
+
+  <footer>
+    <p>© 2025 TisdomEliphazDigitalShop | Support: tisdomeliphazdigitalshop@gmail.com</p>
+  </footer>
+
+  <script type="module">
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { auth, db } from "./firebase-config.js";
+    import { logout } from "./auth.js";
+
+    if ("Notification" in window) {
+      Notification.requestPermission().then(permission => {
+        console.log("Notification permission:", permission);
+      });
+    }
+
+    const orderSound = new Audio("new-order.mp3");
+
+    function renderOrders(snapshot) {
+      const ordersList = document.getElementById("orders-list");
+      ordersList.innerHTML = "";
+
+      if (snapshot.empty) {
+        ordersList.innerHTML = "<p>No orders yet.</p>";
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const order = doc.data();
+        const orderId = doc.id;
+
+        const orderEl = document.createElement("div");
+        orderEl.classList.add("order-box");
+
+        orderEl.innerHTML = `
+          <h3>Order #${orderId}</h3>
+          <p><b>Customer:</b> ${order.email}</p>
+          <p><b>Total:</b> ₦${order.total}</p>
+          <p><b>Status:</b> <span class="status">${order.status}</span></p>
+          <h4>Items:</h4>
+          <ul>
+            ${order.items.map(item => `<li>${item.title} - ₦${item.price}</li>`).join("")}
+          </ul>
+          <button class="btn small" onclick="updateOrderStatus('${orderId}', 'completed')">✅ Mark Completed</button>
+          <button class="btn small danger" onclick="updateOrderStatus('${orderId}', 'cancelled')">❌ Cancel</button>
+        `;
+
+        ordersList.appendChild(orderEl);
+      });
+    }
+
+    async function updateOrderStatus(orderId, status) {
+      try {
+        await updateDoc(doc(db, "orders", orderId), { status });
+        alert("✅ Order status updated to " + status);
+      } catch (err) {
+        console.error(err);
+        alert("❌ Failed to update order: " + err.message);
+      }
+    }
+
+    onAuthStateChanged(auth, user => {
+      if (user && user.email === "tisdomeliphazdigitalshop@gmail.com") {
+        document.getElementById("logoutLink").style.display = "block";
+        document.getElementById("adminLink").style.display = "block";
+
+        const ordersQ = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        onSnapshot(ordersQ, (snapshot) => {
+          renderOrders(snapshot);
+
+          snapshot.docChanges().forEach(change => {
+            if (change.type === "added") {
+              const newOrder = change.doc.data();
+
+              if (Notification.permission === "granted") {
+                new Notification("📦 New Order Received!", {
+                  body: `${newOrder.email} ordered ₦${newOrder.total}`,
+                  icon: "pi-logo.png"
+                });
+              }
+
+              orderSound.play().catch(err => console.warn("Sound blocked until user interacts:", err));
+            }
+          });
+        }, err => {
+          console.error(err);
+          document.getElementById("orders-list").innerHTML = "<p>❌ Failed to load orders.</p>";
+        });
+      } else {
+        document.getElementById("orders-list").innerHTML = "<p>❌ Access Denied. Please login as Admin.</p>";
+      }
+    });
+
+    document.getElementById("mobileMenu").addEventListener("click", () => {
+      document.querySelector(".nav-links").classList.toggle("show");
+    });
+  </script>
+</body>
+</html>

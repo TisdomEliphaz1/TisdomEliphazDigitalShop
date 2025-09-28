@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – TisdomEliphaz Digital Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <h2>Welcome Back</h2>
+      <p>Login to continue to <b>TisdomEliphaz Digital Shop</b></p>
+
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+
+      <button class="btn" id="loginBtn">Login</button>
+
+      <p class="or">— OR —</p>
+
+      <button class="btn google-btn" id="googleBtn">Login with Google</button>
+
+      <p class="switch-link">No account? <a href="register.html">Register here</a></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { login, googleLogin } from "./auth.js";
+
+    // Email/Password login
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        alert("⚠️ Please enter both email and password.");
+        return;
+      }
+
+      try {
+        const user = await login(email, password);
+
+        // Redirect based on role/email
+        if (user.email === "tisdomeliphazdigitalshop@gmail.com") {
+          window.location.href = "admin-dashboard.html"; // Fixed
+        } else {
+          window.location.href = "dashboard.html";
+        }
+      } catch (err) {
+        alert("❌ Login failed: " + err.message);
+      }
+    });
+
+    // Google login
+    document.getElementById("googleBtn").addEventListener("click", async () => {
+      try {
+        const user = await googleLogin();
+
+        if (user.email === "tisdomeliphazdigitalshop@gmail.com") {
+          window.location.href = "admin-dashboard.html"; // Fixed
+        } else {
+          window.location.href = "dashboard.html";
+        }
+      } catch (err) {
+        alert("❌ Google login failed: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

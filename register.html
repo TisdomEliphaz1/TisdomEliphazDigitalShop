@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register – TisdomEliphazDigitalShop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <h2>Create Account</h2>
+      <p>Join <b>TisdomEliphazDigitalShop</b> and start your journey 🚀</p>
+
+      <input type="text" id="username" placeholder="Full Name" required />
+      <input type="email" id="regEmail" placeholder="Email" required />
+      <input type="password" id="regPassword" placeholder="Password" required />
+
+      <button class="btn" id="registerBtn">Register</button>
+
+      <div class="or">──────── or ────────</div>
+
+      <button class="btn google-btn" id="googleBtn">Sign Up with Google</button>
+
+      <p class="switch-link">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { register, googleLogin } from "./auth.js";
+
+    // Register button
+    document.getElementById("registerBtn").addEventListener("click", () => {
+      const name = document.getElementById("username").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+
+      if (!name || !email || !password) {
+        alert("⚠️ Please fill all fields.");
+        return;
+      }
+
+      register(email, password, name)
+        .then(() => {
+          // Redirect after success
+          if (email === "tisdomeliphazdigitalshop@gmail.com") {
+            window.location.href = "admin-dashboard.html"; // Fixed
+          } else {
+            window.location.href = "dashboard.html";
+          }
+        })
+        .catch(err => {
+          alert("❌ " + err.message);
+        });
+    });
+
+    // Google sign up
+    document.getElementById("googleBtn").addEventListener("click", () => {
+      googleLogin()
+        .then(user => {
+          if (user.email === "tisdomeliphazdigitalshop@gmail.com") {
+            window.location.href = "admin-dashboard.html"; // Fixed
+          } else {
+            window.location.href = "dashboard.html";
+          }
+        })
+        .catch(err => {
+          alert("❌ " + err.message);
+        });
+    });
+  </script>
+</body>
+</html>

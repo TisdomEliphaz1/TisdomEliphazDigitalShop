@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TisdomEliphaz Digital Shop - Buy and sell digital products with the power of Pi Network." />
+  <meta name="keywords" content="TisdomEliphaz, Digital Shop, Pi Network, Ecommerce" />
+  <meta name="author" content="Tisdom Eliphaz" />
+  <meta property="og:title" content="TisdomEliphaz Digital Shop" />
+  <meta property="og:description" content="Buy and sell digital products powered by Pi Network." />
+  <meta property="og:image" content="pi-logo.png" />
+  <meta property="og:type" content="website" />
+
+  <title>TisdomEliphaz Digital Shop</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="pi-logo.png" type="image/png" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo brand">TisdomEliphazDigitalShop</a>
+
+      <form class="search-bar">
+        <input type="text" placeholder="Search products..." aria-label="Search products" />
+        <button type="submit">🔍</button>
+      </form>
+
+      <button id="menu-toggle" class="mobile-menu" aria-label="Toggle menu">☰</button>
+
+      <nav>
+        <ul id="nav-menu" class="nav-links">
+          <li><a id="menu-home" href="index.html" class="active">Home</a></li>
+          <li><a id="menu-dashboard" href="dashboard.html">Dashboard</a></li>
+          <li id="adminLink" style="display:none;"><a id="menu-admin" href="admin-dashboard.html">Admin Dashboard</a></li>
+          <li><a id="menu-register" href="register.html">Register</a></li>
+          <li><a id="menu-login" href="login.html">Login</a></li>
+          <li><a id="menu-settings" href="settings.html">Settings</a></li>
+          <li><a id="menu-faqs" href="faqs.html">FAQs</a></li>
+          <li id="logoutLink" style="display:none;"><a href="#" onclick="logout()">Logout</a></li>
+          <li><a href="cart.html" class="cart-btn">🛒 Cart (<span id="cart-count">0</span>)</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section id="hero">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>Welcome to <span class="highlight">TisdomEliphaz Digital Shop</span></h1>
+        <p>Buy and sell securely with the power of <b>Pi Network</b>.</p>
+        <a href="#products" class="btn primary">Shop Now</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="notice" class="section container">
+    <h2>🔔 Notice Board</h2>
+    <div id="adminNotice"><p>Loading latest notice...</p></div>
+    <div id="noticeEditor" style="display:none;">
+      <textarea id="noticeInput" placeholder="Type new notice..."></textarea><br>
+      <button onclick="updateNotice()" class="btn">Update Notice</button>
+    </div>
+  </section>
+
+  <section id="products" class="section container">
+    <h2>🛍 Latest Products</h2>
+    <div id="product-list" class="product-grid">
+      <div class="loading-spinner"></div>
+      <p>Loading products...</p>
+    </div>
+    <div class="cart-summary">
+      <p><b>Total:</b> <span id="cart-total">₦0.00</span></p>
+    </div>
+  </section>
+
+  <section id="contact" class="section container">
+    <h2>📩 Contact Us</h2>
+    <form id="contact-form" class="contact-form">
+      <input type="text" placeholder="Your Name" required />
+      <input type="email" placeholder="Your Email" required />
+      <textarea placeholder="Your Message" required></textarea>
+      <button type="submit" class="btn secondary">Send Message</button>
+    </form>
+  </section>
+
+  <footer>
+    <div class="footer-content container">
+      <img src="pi-logo.png" alt="Pi Logo" class="footer-logo" />
+      <p>&copy; 2025 <b>TisdomEliphaz Digital Shop</b> | Powered by Pi Network</p>
+      <p>Support: <a href="mailto:tisdomeliphazdigitalshop@gmail.com">tisdomeliphazdigitalshop@gmail.com</a></p>
+      <p>WhatsApp: <a href="https://wa.me/2347032953326" target="_blank">+2347032953326</a></p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { logout } from "./auth.js";
+
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('show');
+      });
+    }
+
+    // Auth state check
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { auth } from "./firebase-config.js";
+
+    onAuthStateChanged(auth, (user) => {
+      const loginLink = document.getElementById('menu-login');
+      const registerLink = document.getElementById('menu-register');
+      const logoutLink = document.getElementById('logoutLink');
+      const adminLink = document.getElementById('adminLink');
+
+      if (user) {
+        if (loginLink) loginLink.style.display = 'none';
+        if (registerLink) registerLink.style.display = 'none';
+        if (logoutLink) logoutLink.style.display = 'block';
+        if (adminLink && user.email === 'tisdomeliphazdigitalshop@gmail.com') {
+          adminLink.style.display = 'block';
+        } else if (adminLink) {
+          adminLink.style.display = 'none';
+        }
+      } else {
+        if (loginLink) loginLink.style.display = 'block';
+        if (registerLink) registerLink.style.display = 'block';
+        if (logoutLink) logoutLink.style.display = 'none';
+        if (adminLink) adminLink.style.display = 'none';
+      }
+    });
+
+    // Active menu highlight (for current page)
+    document.addEventListener("DOMContentLoaded", () => {
+      const page = window.location.pathname.split("/").pop() || 'index.html';
+      const menuMap = {
+        "index.html": "menu-home",
+        "dashboard.html": "menu-dashboard",
+        "register.html": "menu-register",
+        "login.html": "menu-login",
+        "settings.html": "menu-settings",
+        "faqs.html": "menu-faqs",
+        "admin-dashboard.html": "menu-admin"
+      };
+      const activeId = menuMap[page];
+      if (activeId) {
+        const activeLink = document.getElementById(activeId);
+        if (activeLink) {
+          activeLink.classList.add("active");
+          activeLink.parentElement.classList.add("active-parent");
+        }
+      }
+
+      // Debug: Add class to body based on screen size
+      if (window.innerWidth <= 768) {
+        document.body.classList.add('mobile-view');
+      } else {
+        document.body.classList.add('desktop-view');
+      }
+    });
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>

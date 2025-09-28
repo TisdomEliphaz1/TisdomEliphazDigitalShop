@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard – TisdomEliphazDigitalShop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo brand">TisdomEliphazDigitalShop</a>
+      <form class="search-bar">
+        <input type="text" placeholder="Search products...">
+        <button type="submit">🔍</button>
+      </form>
+      <ul class="nav-links">
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="dashboard.html" class="active">📊 Dashboard</a></li>
+        <li id="adminLink" style="display:none;"><a id="menu-admin" href="admin-dashboard.html">Admin Dashboard</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+        <li><a href="faqs.html">❓ FAQs</a></li>
+        <li><a href="#" id="logoutBtn">🚪 Logout</a></li>
+      </ul>
+      <button class="mobile-menu" id="mobileMenu">☰</button>
+    </div>
+  </header>
+
+  <section class="dashboard-container">
+    <h2>Welcome back 👋</h2>
+    <div id="user-info" class="user-box">Loading user...</div>
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <h3>🛒 My Orders</h3>
+        <p>Track and manage your recent purchases.</p>
+        <a href="orders.html" class="btn">View Orders</a>
+      </div>
+      <div class="dashboard-card">
+        <h3>🛍 Shop</h3>
+        <p>Browse the latest digital products and services.</p>
+        <a href="index.html#products" class="btn">Go Shopping</a>
+      </div>
+      <div class="dashboard-card">
+        <h3>⚙️ Settings</h3>
+        <p>Update your account and preferences.</p>
+        <a href="settings.html" class="btn">Open Settings</a>
+      </div>
+      <div class="dashboard-card">
+        <h3>❓ Help & FAQs</h3>
+        <p>Get answers to common questions.</p>
+        <a href="faqs.html" class="btn">Read FAQs</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 TisdomEliphazDigitalShop | Support: tisdomeliphazdigitalshop@gmail.com</p>
+  </footer>
+
+  <script type="module">
+    import { auth, logout } from "./auth.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { db } from "./firebase-config.js";
+
+    const userInfo = document.getElementById("user-info");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const adminLink = document.getElementById("adminLink");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+
+          let displayName = user.displayName || user.email;
+          let role = "";
+
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            displayName = data.name || displayName;
+            role = data.role || "";
+          }
+
+          userInfo.innerHTML = `
+            <img src="${user.photoURL || 'images/default-avatar.png'}" alt="User Photo">
+            <span>${displayName}</span>
+            ${role === "admin" ? '<span class="role-badge">⭐ Admin</span>' : ""}
+          `;
+          if (role === "admin") {
+            if (adminLink) adminLink.style.display = "block";
+          } else {
+            if (adminLink) adminLink.style.display = "none";
+          }
+        } catch (err) {
+          console.error("Error loading user:", err);
+          userInfo.textContent = "⚠️ Error loading profile";
+        }
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    logoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        await logout();
+      } catch (err) {
+        alert("❌ Logout failed: " + err.message);
+      }
+    });
+
+    document.getElementById("mobileMenu").addEventListener("click", () => {
+      document.querySelector(".nav-links").classList.toggle("show");
+    });
+  </script>
+</body>
+</html>

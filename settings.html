@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings – TisdomEliphazDigitalShop</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth.js" defer></script>
+
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .settings-container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 450px;
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+      color: #1a73e8;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #555;
+      white-space: pre-line;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: #1a73e8;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #155ab6;
+    }
+
+    .switch-link {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #1a73e8;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .switch-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <h2>⚙️ Account Settings</h2>
+    <p id="accountInfo">Loading account info...</p>
+
+    <label for="displayName">Full Name</label>
+    <input type="text" id="displayName" placeholder="Enter your name">
+
+    <label for="newPassword">New Password</label>
+    <input type="password" id="newPassword" placeholder="Enter new password">
+
+    <button onclick="sendVerification()">Send Email Verification</button>
+    <button onclick="updateProfile()">Update Profile</button>
+
+    <a class="switch-link" href="dashboard.html">⬅ Back to Dashboard</a>
+  </div>
+
+  <script>
+    import { getAuth, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { auth } from "./firebase-config.js";
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById("accountInfo").innerText =
+          `Logged in as: ${user.email}\nEmail verified: ${user.emailVerified}`;
+        document.getElementById("displayName").value = user.displayName || '';
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function sendVerification() {
+      const user = auth.currentUser;
+      if (user) {
+        sendEmailVerification(user)
+          .then(() => alert("✅ Verification email sent!"))
+          .catch(err => alert("❌ " + err.message));
+      }
+    }
+
+    function updateProfile() {
+      const user = auth.currentUser;
+      const displayName = document.getElementById("displayName").value;
+      const newPassword = document.getElementById("newPassword").value;
+
+      if (!user) return;
+
+      const updates = [];
+
+      if (displayName) {
+        updates.push(updateProfile(user, { displayName })
+          .then(() => console.log("✅ Name updated")));
+      }
+
+      if (newPassword) {
+        updates.push(user.updatePassword(newPassword)
+          .then(() => console.log("✅ Password updated")));
+      }
+
+      Promise.all(updates)
+        .then(() => alert("✅ Profile updated successfully!"))
+        .catch(err => alert("❌ " + err.message));
+    }
+  </script>
+</body>
+</html>

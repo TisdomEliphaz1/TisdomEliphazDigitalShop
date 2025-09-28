@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logout – TisdomEliphazDigitalShop</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .logout-container {
+      background-color: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #1a73e8;
+    }
+
+    p {
+      color: #555;
+      margin: 15px 0 0 0;
+    }
+
+    .spinner {
+      margin: 20px auto;
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top: 5px solid #1a73e8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+  <script type="module">
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { auth } from "./firebase-config.js";
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        signOut(auth)
+          .then(() => {
+            setTimeout(() => {
+              window.location.href = "login.html";
+            }, 1000);
+          })
+          .catch(err => {
+            alert("❌ Error signing out: " + err.message);
+          });
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="logout-container">
+    <h2>🚪 Logging Out...</h2>
+    <div class="spinner"></div>
+    <p>Please wait while we sign you out.</p>
+  </div>
+</body>
+</html>
